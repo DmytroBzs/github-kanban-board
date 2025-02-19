@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { fetchIssues } from './operations';
 import { Issue } from '../../types/github';
+import { fetchIssues, updateIssues } from './operations';
 
 interface IssuesState {
   issues: Issue[];
@@ -27,6 +27,17 @@ const issueSlice = createSlice({
         state.error = action.payload as string;
       })
       .addCase(fetchIssues.fulfilled, (state, action) => {
+        state.loading = false;
+        state.issues = action.payload;
+      })
+      .addCase(updateIssues.pending, state => {
+        state.loading = true;
+      })
+      .addCase(updateIssues.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(updateIssues.fulfilled, (state, action) => {
         state.loading = false;
         state.issues = action.payload;
       });

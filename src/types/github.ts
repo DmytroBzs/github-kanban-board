@@ -25,6 +25,8 @@ export interface Issue {
   number: number; // Issue number
   created_at: string; // Date when the issue was created
   user: {
+    avatar_url: string | undefined;
+    html_url: string | undefined;
     login: string; // Username of the issue creator
   };
   comments: number; // Number of comments on the issue

@@ -1,75 +1,74 @@
 import React, { useState } from 'react';
-import IssueCard from '../IssueCard/IssueCard';
-import { Container, Row, Col, Card, Button } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 import { Issue } from '../../types/github';
 import { useIssues, useLoading, useError } from '../../redux/issues/selectors';
 import Loader from '../Loader/Loader';
+import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core';
+import DroppableColumn from '../DropableColumn/DropableColumn';
 
 const Board: React.FC = () => {
   const issues: Issue[] = useIssues();
   const loading = useLoading();
   const error = useError();
 
-  const groupedIssues = {
-    todo: issues.filter(issue => issue.state === 'open' && !issue.assignee),
-    in_progress: issues.filter(
+  const [groupedIssues, setGroupedIssues] = useState({
+    ToDo: issues.filter(issue => issue.state === 'open' && !issue.assignee),
+    InProgress: issues.filter(
       issue => issue.state === 'open' && issue.assignee
     ),
-    done: issues.filter(issue => issue.state === 'closed'),
-  };
+    Done: issues.filter(issue => issue.state === 'closed'),
+  });
 
-  const [visibleCounts, setVisibleCounts] = useState<{ [key: string]: number }>(
-    {
-      todo: 10,
-      in_progress: 10,
-      done: 10,
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over) return;
+
+    const sourceColumn = active.data.current?.column as
+      | 'ToDo'
+      | 'InProgress'
+      | 'Done';
+    const targetColumn = over.id as 'ToDo' | 'InProgress' | 'Done';
+    const issueId = active.id;
+
+    if (sourceColumn !== targetColumn) {
+      const issueToMove = groupedIssues[sourceColumn].find(
+        issue => issue.id === issueId
+      );
+      if (!issueToMove) return;
+
+      setGroupedIssues(prev => {
+        return {
+          ...prev,
+          [sourceColumn]: prev[sourceColumn].filter(
+            issue => issue.id !== issueId
+          ),
+          [targetColumn]: [
+            ...prev[targetColumn],
+            {
+              ...issueToMove,
+              state: targetColumn === 'Done' ? 'closed' : 'open',
+            },
+          ],
+        };
+      });
     }
-  );
-
-  const handleShowMore = (columnKey: keyof typeof groupedIssues) => {
-    setVisibleCounts(prev => ({
-      ...prev,
-      [columnKey]: prev[columnKey] + 10,
-    }));
   };
 
   return (
-    <Container>
-      {error && <p className="text-danger">Error: {error}</p>}
-      {loading && <Loader />}
-      {issues.length > 0 && (
+    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <Container>
+        {error && <p className="text-danger">Error: {error}</p>}
+        {loading && <Loader />}
         <Row className="justify-content-center">
           {Object.entries(groupedIssues).map(([key, issues]) => (
             <Col key={key} md={4}>
-              <Card className="p-3 shadow-sm" style={{ minHeight: '300px' }}>
-                <Card.Title className="text-center">
-                  {key === 'todo'
-                    ? 'ToDo'
-                    : key === 'in_progress'
-                    ? 'In Progress'
-                    : 'Done'}
-                </Card.Title>
-                <div className="d-flex flex-column gap-2">
-                  {issues.slice(0, visibleCounts[key]).map(issue => (
-                    <IssueCard key={issue.id} issue={issue} />
-                  ))}
-                </div>
-                {issues.length > visibleCounts[key] && (
-                  <Button
-                    variant="link"
-                    onClick={() =>
-                      handleShowMore(key as keyof typeof groupedIssues)
-                    }
-                  >
-                    Show more
-                  </Button>
-                )}
-              </Card>
+              <DroppableColumn id={key} title={key} issues={issues} />
             </Col>
           ))}
         </Row>
-      )}
-    </Container>
+      </Container>
+    </DndContext>
   );
 };
 
