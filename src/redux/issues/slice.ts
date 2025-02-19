@@ -7,21 +7,18 @@ interface IssueState {
   column: 'ToDo' | 'InProgress' | 'Done';
   order: number;
 }
-
 interface RepoIssues {
   [repoUrl: string]: {
     issues: Issue[];
     issueStates: { [issueId: number]: IssueState };
   };
 }
-
 interface IssuesState {
   currentRepo: string | null;
   repositories: RepoIssues;
   loading: boolean;
   error: string | null;
 }
-
 const initialState: IssuesState = {
   currentRepo: null,
   repositories: {},
@@ -60,8 +57,6 @@ const issueSlice = createSlice({
             issues,
             issueStates: {},
           };
-
-          // Initialize issue states for new repository
           issues.forEach((issue, index) => {
             let column: 'ToDo' | 'InProgress' | 'Done';
             if (issue.state === 'closed') {

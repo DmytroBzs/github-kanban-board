@@ -23,7 +23,7 @@ describe('Board Component', () => {
         currentRepo: 'Repo1',
         repositories: {
           Repo1: {
-            issues: [], // Гарантуємо, що issues є масивом
+            issues: [],
             issueStates: {},
             columns: ['ToDo', 'InProgress', 'Done'],
           },
@@ -37,7 +37,6 @@ describe('Board Component', () => {
       </Provider>
     );
 
-    // Перевіряємо наявність назв колонок
     expect(screen.getByText('ToDo')).toBeInTheDocument();
     expect(screen.getByText('InProgress')).toBeInTheDocument();
     expect(screen.getByText('Done')).toBeInTheDocument();

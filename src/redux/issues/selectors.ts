@@ -1,17 +1,18 @@
-import { useSelector } from 'react-redux';
+import { PersistedIssuesState } from '../../types/github';
 import { RootState } from '../store';
 
-export const useIssues = () => {
-  const issues = useSelector((state: RootState) => state.issues.issues);
-  return issues;
+export const selectIssuesState = (state: RootState) => state.issues;
+
+export const selectIssues = (state: RootState) => {
+  const { currentRepo, repositories } = state.issues as PersistedIssuesState;
+  return currentRepo && repositories[currentRepo]
+    ? repositories[currentRepo].issues
+    : [];
 };
 
-export const useLoading = () => {
-  const loading = useSelector((state: RootState) => state.issues.loading);
-  return loading;
-};
-
-export const useError = () => {
-  const error = useSelector((state: RootState) => state.issues.error);
-  return error;
+export const selectIssueStates = (state: RootState) => {
+  const { currentRepo, repositories } = state.issues as PersistedIssuesState;
+  return currentRepo && repositories[currentRepo]
+    ? repositories[currentRepo].issueStates
+    : {};
 };
