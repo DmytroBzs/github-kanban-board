@@ -2,21 +2,24 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { Issue } from '../../types/github';
 import axiosInstance from '../../api';
 
-export const fetchIssues = createAsyncThunk<Issue[], string>(
-  'issues/fetchIssues',
-  async (repoUrl: string) => {
-    const response = await axiosInstance.get<Issue[]>(`/${repoUrl}/issues`);
-    console.log(response.data);
-    return response.data;
-  }
-);
+export const fetchIssues = createAsyncThunk<
+  { repoUrl: string; issues: Issue[] },
+  string
+>('issues/fetchIssues', async (repoUrl: string) => {
+  const response = await axiosInstance.get<Issue[]>(
+    `/${repoUrl}/issues?state=all`
+  );
+  return {
+    repoUrl,
+    issues: response.data,
+  };
+});
 
 export const updateIssues = createAsyncThunk<
   Issue[],
   {
     issueId: number;
     newColumn: 'ToDo' | 'InProgress' | 'Done';
-    newIndex: number;
   },
   { state: { issues: { issues: Issue[] } } }
 >('issues/updateIssues', async ({ issueId, newColumn }, { getState }) => {
